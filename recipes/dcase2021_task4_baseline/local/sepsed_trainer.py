@@ -8,15 +8,15 @@ import pytorch_lightning as pl
 import torch
 from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
 
-from desed_task.data_augm import mixup
-from desed_task.utils.scaler import TorchScaler
+from DESED_task.desed_task.data_augm import mixup
+from DESED_task.desed_task.utils.scaler import TorchScaler
 import numpy as np
 
 from .utils import (
     batched_decode_preds,
     log_sedeval_metrics,
 )
-from desed_task.evaluation.evaluation_measures import (
+from DESED_task.desed_task.evaluation.evaluation_measures import (
     compute_per_intersection_macro_f1,
     compute_psds_from_operating_points,
 )

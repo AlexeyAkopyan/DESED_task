@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import scipy
 
-from desed_task.evaluation.evaluation_measures import compute_sed_eval_metrics
+from DESED_task.desed_task.evaluation.evaluation_measures import compute_sed_eval_metrics
 import json
 
 import soundfile
@@ -12,7 +12,7 @@ import glob
 
 
 def batched_decode_preds(
-    strong_preds, filenames, encoder, thresholds=[0.5], median_filter=7, pad_indx=None,
+        strong_preds, filenames, encoder, thresholds=[0.5], median_filter=7, pad_indx=None,
 ):
     """ Decode a batch of predictions to dataframes. Each threshold gives a different dataframe and stored in a
     dictionary
@@ -45,7 +45,7 @@ def batched_decode_preds(
             pred = encoder.decode_strong(pred)
             pred = pd.DataFrame(pred, columns=["event_label", "onset", "offset"])
             pred["filename"] = Path(filenames[j]).stem + ".wav"
-            prediction_dfs[c_th] = prediction_dfs[c_th].append(pred, ignore_index=True)
+            prediction_dfs[c_th] = pd.concat((prediction_dfs[c_th], pred), ignore_index=True)
 
     return prediction_dfs
 
@@ -106,7 +106,6 @@ def log_sedeval_metrics(predictions, ground_truth, save_dir=None):
 
 
 def parse_jams(jams_list, encoder, out_json):
-
     if len(jams_list) == 0:
         raise IndexError("jams list is empty ! Wrong path ?")
 
@@ -138,7 +137,7 @@ def parse_jams(jams_list, encoder, out_json):
                 backgrounds.append(source_file)
             else:  # it is an event
                 if (
-                    sound["value"]["label"] not in encoder.labels
+                        sound["value"]["label"] not in encoder.labels
                 ):  # correct different labels
                     if sound["value"]["label"].startswith("Frying"):
                         sound["value"]["label"] = "Frying"
@@ -152,7 +151,7 @@ def parse_jams(jams_list, encoder, out_json):
                         "filename": source_file,
                         "onset": sound["value"]["event_time"],
                         "offset": sound["value"]["event_time"]
-                        + sound["value"]["event_duration"],
+                                  + sound["value"]["event_duration"],
                         "event_label": sound["value"]["label"],
                     }
                 )
@@ -165,11 +164,11 @@ def parse_jams(jams_list, encoder, out_json):
 def generate_tsv_wav_durations(audio_dir, out_tsv):
     """
         Generate a dataframe with filename and duration of the file
-    
+
     Args:
         audio_dir: str, the path of the folder where audio files are (used by glob.glob)
         out_tsv: str, the path of the output tsv file
-    
+
     Returns:
         pd.DataFrame: the dataframe containing filenames and durations
     """

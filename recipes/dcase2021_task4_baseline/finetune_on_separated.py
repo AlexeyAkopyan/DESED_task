@@ -11,11 +11,11 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from desed_task.dataio import ConcatDatasetBatchSampler
-from desed_task.dataio.datasets import StronglyAnnotatedSet, UnlabeledSet, WeakSet
-from desed_task.nnet.CRNN import CRNN
-from desed_task.utils.encoder import ManyHotEncoder
-from desed_task.utils.schedulers import ExponentialWarmup
+from DESED_task.desed_task.dataio import ConcatDatasetBatchSampler
+from DESED_task.desed_task.dataio.datasets import StronglyAnnotatedSet, UnlabeledSet, WeakSet
+from DESED_task.desed_task.nnet.CRNN import CRNN
+from DESED_task.desed_task.utils.encoder import ManyHotEncoder
+from DESED_task.desed_task.utils.schedulers import ExponentialWarmup
 
 from local.classes_dict import classes_labels
 from local.sepsed_trainer import SEPSEDTask4_2021

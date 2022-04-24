@@ -3,6 +3,7 @@ oar_job_*
 OAR*
 recipes/dcase2020_task4_baseline/logs/*
 recipes/dcase2020_task4_baseline/logs*
+recipes/dcase2021_task4_baseline/exp
 
 #ignore data folders
 recipes/dcase2020_task4_baseline/data
@@ -154,3 +155,4 @@ dmypy.json
 
 # Pycharm
 .idea
+/recipes/dcase2021_task4_baseline/exp/

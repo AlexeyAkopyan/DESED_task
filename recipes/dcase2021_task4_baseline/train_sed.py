@@ -11,11 +11,11 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from desed_task.dataio import ConcatDatasetBatchSampler
-from desed_task.dataio.datasets import StronglyAnnotatedSet, UnlabeledSet, WeakSet
-from desed_task.nnet.CRNN import CRNN
-from desed_task.utils.encoder import ManyHotEncoder
-from desed_task.utils.schedulers import ExponentialWarmup
+from DESED_task.desed_task.dataio import ConcatDatasetBatchSampler
+from DESED_task.desed_task.dataio.datasets import StronglyAnnotatedSet, UnlabeledSet, WeakSet
+from DESED_task.desed_task.nnet.CRNN import CRNN
+from DESED_task.desed_task.utils.encoder import ManyHotEncoder
+from DESED_task.desed_task.utils.schedulers import ExponentialWarmup
 
 from local.classes_dict import classes_labels
 from local.sed_trainer import SEDTask4_2021
@@ -49,17 +49,18 @@ def resample_data_generate_durations(config_data, test_only=False, evaluation=Fa
                     config_data[base_set + "_folder"], config_data[base_set + "_dur"]
                 )
 
+
 def single_run(
-    config,
-    log_dir,
-    gpus,
-    checkpoint_resume=None,
-    test_state_dict=None,
-    fast_dev_run=False,
-    evaluation=False
+        config,
+        log_dir,
+        gpus,
+        checkpoint_resume=None,
+        test_state_dict=None,
+        fast_dev_run=False,
+        evaluation=False
 ):
     """
-    Running sound event detection baselin
+    Running sound event detection baseline
 
     Args:
         config (dict): the dictionary of configuration params
@@ -107,13 +108,13 @@ def single_run(
 
     if test_state_dict is None:
         ##### data prep train valid ##########
-        synth_df = pd.read_csv(config["data"]["synth_tsv"], sep="\t")
-        synth_set = StronglyAnnotatedSet(
-            config["data"]["synth_folder"],
-            synth_df,
-            encoder,
-            pad_to=config["data"]["audio_max_len"],
-        )
+        # synth_df = pd.read_csv(config["data"]["synth_tsv"], sep="\t")
+        # synth_set = StronglyAnnotatedSet(
+        #     config["data"]["synth_folder"],
+        #     synth_df,
+        #     encoder,
+        #     pad_to=config["data"]["audio_max_len"],
+        # )
 
         weak_df = pd.read_csv(config["data"]["weak_tsv"], sep="\t")
         train_weak_df = weak_df.sample(
@@ -135,14 +136,14 @@ def single_run(
             pad_to=config["data"]["audio_max_len"],
         )
 
-        synth_df_val = pd.read_csv(config["data"]["synth_val_tsv"], sep="\t")
-        synth_val = StronglyAnnotatedSet(
-            config["data"]["synth_val_folder"],
-            synth_df_val,
-            encoder,
-            return_filename=True,
-            pad_to=config["data"]["audio_max_len"],
-        )
+        # synth_df_val = pd.read_csv(config["data"]["synth_val_tsv"], sep="\t")
+        # synth_val = StronglyAnnotatedSet(
+        #     config["data"]["synth_val_folder"],
+        #     synth_df_val,
+        #     encoder,
+        #     return_filename=True,
+        #     pad_to=config["data"]["audio_max_len"],
+        # )
 
         weak_val = WeakSet(
             config["data"]["weak_folder"],
@@ -152,22 +153,22 @@ def single_run(
             return_filename=True,
         )
 
-        tot_train_data = [synth_set, weak_set, unlabeled_set]
+        tot_train_data = [weak_set, unlabeled_set]
         train_dataset = torch.utils.data.ConcatDataset(tot_train_data)
 
-        batch_sizes = config["training"]["batch_size"]
+        batch_sizes = config["training"]["batch_size"][1:]
         samplers = [torch.utils.data.RandomSampler(x) for x in tot_train_data]
         batch_sampler = ConcatDatasetBatchSampler(samplers, batch_sizes)
 
-        valid_dataset = torch.utils.data.ConcatDataset([synth_val, weak_val])
+        valid_dataset = torch.utils.data.ConcatDataset([weak_val])
 
         ##### training params and optimizers ############
         epoch_len = min(
             [
                 len(tot_train_data[indx])
                 // (
-                    config["training"]["batch_size"][indx]
-                    * config["training"]["accumulate_batches"]
+                        config["training"]["batch_size"][indx]
+                        * config["training"]["accumulate_batches"]
                 )
                 for indx in range(len(tot_train_data))
             ]
@@ -242,7 +243,7 @@ def single_run(
         max_epochs=n_epochs,
         callbacks=callbacks,
         gpus=gpus,
-        distributed_backend=config["training"].get("backend"),
+        amp_backend=config["training"].get("backend"),
         accumulate_grad_batches=config["training"]["accumulate_batches"],
         logger=logger,
         resume_from_checkpoint=checkpoint_resume,
@@ -288,16 +289,16 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--gpus",
-        default="0",
+        default="1",
         help="The number of GPUs to train on, or the gpu to use, default='0', "
-        "so uses one GPU indexed by 0.",
+             "so uses one GPU indexed by 0.",
     )
     parser.add_argument(
         "--fast_dev_run",
         action="store_true",
         default=False,
         help="Use this option to make a 'fake' run which is useful for development and debugging. "
-        "It uses very few batches and epochs so it won't give any meaningful result.",
+             "It uses very few batches and epochs so it won't give any meaningful result.",
     )
 
     parser.add_argument(
@@ -311,13 +312,13 @@ if __name__ == "__main__":
     with open(args.conf_file, "r") as f:
         configs = yaml.safe_load(f)
 
-    evaluation = False 
+    evaluation = False
     test_from_checkpoint = args.test_from_checkpoint
 
     if args.eval_from_checkpoint is not None:
         test_from_checkpoint = args.eval_from_checkpoint
         evaluation = True
-    
+
     test_model_state_dict = None
     if test_from_checkpoint is not None:
         checkpoint = torch.load(test_from_checkpoint)
@@ -331,7 +332,7 @@ if __name__ == "__main__":
 
     if evaluation:
         configs["training"]["batch_size_val"] = 1
-        
+
     seed = configs["training"]["seed"]
     if seed:
         torch.random.manual_seed(seed)
@@ -340,7 +341,7 @@ if __name__ == "__main__":
         pl.seed_everything(seed)
 
     test_only = test_from_checkpoint is not None
-    resample_data_generate_durations(configs["data"], test_only, evaluation)
+    # resample_data_generate_durations(configs["data"], test_only, evaluation)
     single_run(
         configs,
         args.log_dir,
